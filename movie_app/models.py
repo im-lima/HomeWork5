@@ -18,8 +18,13 @@ class Movie(models.Model):
 
 
 class Review(models.Model):
-    text = models.TextField()
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='reviews')
+    text = models.TextField(verbose_name="Текст отзыва")
+    stars = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        default=1,
+        verbose_name="Рейтинг"
+    )
+    movie = models.ForeignKey('Movie', on_delete=models.CASCADE, related_name='reviews')
 
     def __str__(self):
-        return f'Review for {self.movie.title}'
+        return f"Review for {self.movie.title} - {self.stars} stars"

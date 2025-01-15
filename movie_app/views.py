@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404
+from django.db.models import Avg, Count
 
 from .models import Director, Movie, Review
 from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
@@ -8,9 +9,16 @@ from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
 
 class DirectorListView(APIView):
     def get(self, request):
-        directors = Director.objects.all()
-        serializer = DirectorSerializer(directors, many=True)
-        return Response(serializer.data)
+        directors = Director.objects.annotate(movies_count=Count('movie'))
+        data = [
+            {
+                'id': director.id,
+                'name': director.name,
+                'movies_count': director.movies_count,
+            }
+            for director in directors
+        ]
+        return Response(data)
 
 
 class DirectorDetailView(APIView):
@@ -46,3 +54,38 @@ class ReviewDetailView(APIView):
         review = get_object_or_404(Review, id=id)
         serializer = ReviewSerializer(review)
         return Response(serializer.data)
+
+
+class MovieReviewsView(APIView):
+    def get(self, request):
+        movies = Movie.objects.annotate(avg_rating=Avg('reviews__stars'))
+        data = [
+            {
+                'id': movie.id,
+                'title': movie.title,
+                'reviews': [
+                    {
+                        'id': review.id,
+                        'text': review.text,
+                        'stars': review.stars,
+                    } for review in movie.reviews.all()
+                ],
+                'average_rating': movie.avg_rating,
+            }
+            for movie in movies
+        ]
+        return Response(data)
+
+
+class DirectorWithMoviesCountView(APIView):
+    def get(self, request):
+        directors = Director.objects.annotate(movies_count=Count('movie'))
+        data = [
+            {
+                'id': director.id,
+                'name': director.name,
+                'movies_count': director.movies_count,
+            }
+            for director in directors
+        ]
+        return Response(data)
