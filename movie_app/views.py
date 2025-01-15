@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from django.db.models import Avg, Count
 
 from .models import Director, Movie, Review
 from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
-
 
 class DirectorListView(APIView):
     def get(self, request):
@@ -20,6 +20,12 @@ class DirectorListView(APIView):
         ]
         return Response(data)
 
+    def post(self, request):
+        serializer = DirectorSerializer(data=request.data)
+        if serializer.is_valid():
+            director = serializer.save()
+            return Response(DirectorSerializer(director).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DirectorDetailView(APIView):
     def get(self, request, id):
@@ -27,6 +33,18 @@ class DirectorDetailView(APIView):
         serializer = DirectorSerializer(director)
         return Response(serializer.data)
 
+    def put(self, request, id):
+        director = get_object_or_404(Director, id=id)
+        serializer = DirectorSerializer(director, data=request.data, partial=True)
+        if serializer.is_valid():
+            director = serializer.save()
+            return Response(DirectorSerializer(director).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        director = get_object_or_404(Director, id=id)
+        director.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MovieListView(APIView):
     def get(self, request):
@@ -34,13 +52,11 @@ class MovieListView(APIView):
         serializer = MovieSerializer(movies, many=True)
         return Response(serializer.data)
 
-
 class MovieDetailView(APIView):
     def get(self, request, id):
         movie = get_object_or_404(Movie, id=id)
         serializer = MovieSerializer(movie)
         return Response(serializer.data)
-
 
 class ReviewListView(APIView):
     def get(self, request):
@@ -48,13 +64,11 @@ class ReviewListView(APIView):
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data)
 
-
 class ReviewDetailView(APIView):
     def get(self, request, id):
         review = get_object_or_404(Review, id=id)
         serializer = ReviewSerializer(review)
         return Response(serializer.data)
-
 
 class MovieReviewsView(APIView):
     def get(self, request):
@@ -75,7 +89,6 @@ class MovieReviewsView(APIView):
             for movie in movies
         ]
         return Response(data)
-
 
 class DirectorWithMoviesCountView(APIView):
     def get(self, request):

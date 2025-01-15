@@ -11,7 +11,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path('api/v1/directors/', DirectorWithMoviesCountView.as_view(), name='directors_with_movies_count'),
+    path('api/v1/directors/', DirectorListView.as_view(), name='directors_list'),
     path('api/v1/directors/<int:id>/', DirectorDetailView.as_view(), name='director_detail'),
     path('api/v1/movies/', MovieListView.as_view(), name='movie_list'),
     path('api/v1/movies/<int:id>/', MovieDetailView.as_view(), name='movie_detail'),
