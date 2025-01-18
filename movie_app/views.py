@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from django.db.models import Avg, Count
-
 from .models import Director, Movie, Review
 from .serializers import DirectorSerializer, MovieSerializer, ReviewSerializer
 
@@ -52,11 +51,31 @@ class MovieListView(APIView):
         serializer = MovieSerializer(movies, many=True)
         return Response(serializer.data)
 
+    def post(self, request):
+        serializer = MovieSerializer(data=request.data)
+        if serializer.is_valid():
+            movie = serializer.save()
+            return Response(MovieSerializer(movie).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class MovieDetailView(APIView):
     def get(self, request, id):
         movie = get_object_or_404(Movie, id=id)
         serializer = MovieSerializer(movie)
         return Response(serializer.data)
+
+    def put(self, request, id):
+        movie = get_object_or_404(Movie, id=id)
+        serializer = MovieSerializer(movie, data=request.data, partial=True)
+        if serializer.is_valid():
+            movie = serializer.save()
+            return Response(MovieSerializer(movie).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        movie = get_object_or_404(Movie, id=id)
+        movie.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ReviewListView(APIView):
     def get(self, request):
@@ -64,11 +83,31 @@ class ReviewListView(APIView):
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data)
 
+    def post(self, request):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            review = serializer.save()
+            return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class ReviewDetailView(APIView):
     def get(self, request, id):
         review = get_object_or_404(Review, id=id)
         serializer = ReviewSerializer(review)
         return Response(serializer.data)
+
+    def put(self, request, id):
+        review = get_object_or_404(Review, id=id)
+        serializer = ReviewSerializer(review, data=request.data, partial=True)
+        if serializer.is_valid():
+            review = serializer.save()
+            return Response(ReviewSerializer(review).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        review = get_object_or_404(Review, id=id)
+        review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MovieReviewsView(APIView):
     def get(self, request):
