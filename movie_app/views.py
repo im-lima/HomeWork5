@@ -105,5 +105,5 @@ class MovieReviewsView(generics.ListAPIView):
 
 
 class DirectorWithMoviesCountView(generics.ListAPIView):
-    queryset = Director.objects.annotate(movies_count=Count('movie'))
+    queryset = Director.objects.annotate(movies_count=Count('movies'))
     serializer_class = DirectorSerializer
